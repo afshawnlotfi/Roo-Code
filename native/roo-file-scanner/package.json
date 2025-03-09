@@ -1,0 +1,25 @@
+{
+  "name": "roo-file-scanner",
+  "version": "0.1.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "napi": {
+    "name": "roo-file-scanner",
+    "triples": {
+      "defaults": true,
+      "additional": [
+        "x86_64-apple-darwin",
+        "aarch64-apple-darwin",
+        "x86_64-pc-windows-msvc",
+        "x86_64-unknown-linux-gnu"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.16.3"
+  }
+}
