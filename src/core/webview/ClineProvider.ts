@@ -1262,6 +1262,10 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 						await this.updateGlobalState("browserViewportSize", browserViewportSize)
 						await this.postStateToWebview()
 						break
+					case "puppeteerOptions":
+						await this.updateGlobalState("puppeteerOptions", message.text)
+						await this.postStateToWebview()
+						break
 					case "fuzzyMatchThreshold":
 						await this.updateGlobalState("fuzzyMatchThreshold", message.value)
 						await this.postStateToWebview()
@@ -2245,6 +2249,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 			allowedCommands,
 			soundVolume: soundVolume ?? 0.5,
 			browserViewportSize: browserViewportSize ?? "900x600",
+			puppeteerOptions: (await this.getGlobalState("puppeteerOptions")) as string | undefined,
 			screenshotQuality: screenshotQuality ?? 75,
 			preferredLanguage: preferredLanguage ?? "English",
 			writeDelayMs: writeDelayMs ?? 1000,
@@ -2398,6 +2403,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 			checkpointStorage: stateValues.checkpointStorage ?? "task",
 			soundVolume: stateValues.soundVolume,
 			browserViewportSize: stateValues.browserViewportSize ?? "900x600",
+			puppeteerOptions: stateValues.puppeteerOptions,
 			screenshotQuality: stateValues.screenshotQuality ?? 75,
 			fuzzyMatchThreshold: stateValues.fuzzyMatchThreshold ?? 1.0,
 			writeDelayMs: stateValues.writeDelayMs ?? 1000,

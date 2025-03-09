@@ -122,6 +122,7 @@ export interface ExtensionState {
 	enableCheckpoints: boolean
 	checkpointStorage: CheckpointStorage
 	browserViewportSize?: string
+	puppeteerOptions?: string // JSON string containing Puppeteer launch options
 	screenshotQuality?: number
 	fuzzyMatchThreshold?: number
 	preferredLanguage: string

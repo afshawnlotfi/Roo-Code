@@ -56,6 +56,7 @@ export interface WebviewMessage {
 		| "enableCheckpoints"
 		| "checkpointStorage"
 		| "browserViewportSize"
+		| "puppeteerOptions"
 		| "screenshotQuality"
 		| "openMcpSettings"
 		| "restartMcpServer"

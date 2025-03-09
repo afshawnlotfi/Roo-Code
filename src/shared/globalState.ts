@@ -95,6 +95,7 @@ export const GLOBAL_STATE_KEYS = [
 	"mistralCodestralUrl",
 	"maxOpenTabsContext",
 	"browserToolEnabled",
+	"puppeteerOptions",
 	"lmStudioSpeculativeDecodingEnabled",
 	"lmStudioDraftModelId",
 	"telemetrySetting",

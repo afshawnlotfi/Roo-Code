@@ -68,6 +68,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone },
 		alwaysApproveResubmit,
 		browserToolEnabled,
 		browserViewportSize,
+		puppeteerOptions,
 		enableCheckpoints,
 		checkpointStorage,
 		diffEnabled,
@@ -172,6 +173,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone },
 			vscode.postMessage({ type: "enableCheckpoints", bool: enableCheckpoints })
 			vscode.postMessage({ type: "checkpointStorage", text: checkpointStorage })
 			vscode.postMessage({ type: "browserViewportSize", text: browserViewportSize })
+			vscode.postMessage({ type: "puppeteerOptions", text: puppeteerOptions })
 			vscode.postMessage({ type: "fuzzyMatchThreshold", value: fuzzyMatchThreshold ?? 1.0 })
 			vscode.postMessage({ type: "writeDelayMs", value: writeDelayMs })
 			vscode.postMessage({ type: "screenshotQuality", value: screenshotQuality ?? 75 })
@@ -377,6 +379,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone },
 					<BrowserSettings
 						browserToolEnabled={browserToolEnabled}
 						browserViewportSize={browserViewportSize}
+						puppeteerOptions={puppeteerOptions}
 						screenshotQuality={screenshotQuality}
 						setCachedStateField={setCachedStateField}
 					/>

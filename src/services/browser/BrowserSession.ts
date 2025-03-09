@@ -52,19 +52,56 @@ export class BrowserSession {
 			await this.closeBrowser() // this may happen when the model launches a browser again after having used it already before
 		}
 
-		const stats = await this.ensureChromiumExists()
-		this.browser = await stats.puppeteer.launch({
-			args: [
-				"--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-			],
-			executablePath: stats.executablePath,
-			defaultViewport: (() => {
-				const size = (this.context.globalState.get("browserViewportSize") as string | undefined) || "900x600"
-				const [width, height] = size.split("x").map(Number)
-				return { width, height }
-			})(),
-			// headless: false,
-		})
+		// Get viewport size
+		const viewportSize = (() => {
+			const size = (this.context.globalState.get("browserViewportSize") as string | undefined) || "900x600"
+			const [width, height] = size.split("x").map(Number)
+			return { width, height }
+		})()
+
+		// Check if custom Puppeteer options are set
+		const customPuppeteerOptionsStr = this.context.globalState.get("puppeteerOptions") as string | undefined
+
+		if (customPuppeteerOptionsStr) {
+			try {
+				// Parse the JSON string to get custom options
+				const customOptions = JSON.parse(customPuppeteerOptionsStr)
+
+				// Merge default options with custom options
+				const launchOptions = {
+					args: [
+						"--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+					],
+					defaultViewport: viewportSize,
+					...customOptions,
+				}
+
+				// Launch browser with merged options
+				this.browser = await launch(launchOptions)
+			} catch (error) {
+				console.error("Error parsing puppeteerOptions:", error)
+				// Fall back to default behavior if JSON parsing fails
+				const stats = await this.ensureChromiumExists()
+				this.browser = await stats.puppeteer.launch({
+					args: [
+						"--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+					],
+					executablePath: stats.executablePath,
+					defaultViewport: viewportSize,
+				})
+			}
+		} else {
+			// If no custom options, use PCR to get or download Chromium
+			const stats = await this.ensureChromiumExists()
+			this.browser = await stats.puppeteer.launch({
+				args: [
+					"--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+				],
+				executablePath: stats.executablePath,
+				defaultViewport: viewportSize,
+			})
+		}
+
 		// (latest version of puppeteer does not add headless to user agent)
 		this.page = await this.browser?.newPage()
 	}

@@ -44,13 +44,29 @@ export class UrlContentFetcher {
 		if (this.browser) {
 			return
 		}
-		const stats = await this.ensureChromiumExists()
-		this.browser = await stats.puppeteer.launch({
-			args: [
-				"--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-			],
-			executablePath: stats.executablePath,
-		})
+
+		// Check if a custom browser path is set
+		const customBrowserPath = this.context.globalState.get("browserPath") as string | undefined
+
+		if (customBrowserPath) {
+			// If custom browser path is provided, use puppeteer-core directly
+			this.browser = await launch({
+				args: [
+					"--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+				],
+				executablePath: customBrowserPath,
+			})
+		} else {
+			// If no custom browser path, use PCR to get or download Chromium
+			const stats = await this.ensureChromiumExists()
+			this.browser = await stats.puppeteer.launch({
+				args: [
+					"--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+				],
+				executablePath: stats.executablePath,
+			})
+		}
+
 		// (latest version of puppeteer does not add headless to user agent)
 		this.page = await this.browser?.newPage()
 	}
