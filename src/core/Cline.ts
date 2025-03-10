@@ -2648,24 +2648,71 @@ export class Cline {
 									?.getMcpHub()
 									?.callTool(server_name, tool_name, parsedArguments)
 
-								// TODO: add progress indicator and ability to parse images and non-text responses
-								const toolResultPretty =
-									(toolResult?.isError ? "Error:\n" : "") +
-										toolResult?.content
+								// Extract text and images from the MCP tool response
+								let toolResultText = toolResult?.isError ? "Error:\n" : ""
+								const imageUrls: string[] = []
+
+								if (toolResult?.content) {
+									toolResultText +=
+										toolResult.content
 											.map((item) => {
 												if (item.type === "text") {
 													return item.text
 												}
+												if (item.type === "image") {
+													// Store image URL for display
+													if (typeof item.data === "string") {
+														// Handle direct image data
+														const mimeType = item.mimeType || "image/png"
+														const dataUrl = `data:${mimeType};base64,${item.data}`
+														imageUrls.push(dataUrl)
+													}
+													return "" // Don't include image URLs in text
+												}
 												if (item.type === "resource") {
 													const { blob, ...rest } = item.resource
+													// If resource has image data, extract and add to images
+													if (blob && typeof blob === "object") {
+														// Use type assertion and safe property access
+														const blobObj = blob as Record<string, any>
+														const mimeType =
+															typeof blobObj.mimeType === "string"
+																? blobObj.mimeType
+																: typeof blobObj.type === "string"
+																	? blobObj.type
+																	: ""
+
+														const data =
+															typeof blobObj.data === "string"
+																? blobObj.data
+																: typeof blobObj.content === "string"
+																	? blobObj.content
+																	: ""
+
+														if (mimeType && mimeType.startsWith("image/") && data) {
+															const dataUrl = `data:${mimeType};base64,${data}`
+															imageUrls.push(dataUrl)
+														}
+													}
 													return JSON.stringify(rest, null, 2)
 												}
 												return ""
 											})
 											.filter(Boolean)
 											.join("\n\n") || "(No response)"
-								await this.say("mcp_server_response", toolResultPretty)
-								pushToolResult(formatResponse.toolResult(toolResultPretty))
+								}
+
+								await this.say(
+									"mcp_server_response",
+									toolResultText,
+									imageUrls.length > 0 ? imageUrls : undefined,
+								)
+								pushToolResult(
+									formatResponse.toolResult(
+										toolResultText,
+										imageUrls.length > 0 ? imageUrls : undefined,
+									),
+								)
 								break
 							}
 						} catch (error) {
@@ -2716,18 +2763,49 @@ export class Cline {
 									.deref()
 									?.getMcpHub()
 									?.readResource(server_name, uri)
-								const resourceResultPretty =
-									resourceResult?.contents
-										.map((item) => {
-											if (item.text) {
-												return item.text
-											}
-											return ""
-										})
-										.filter(Boolean)
-										.join("\n\n") || "(Empty response)"
-								await this.say("mcp_server_response", resourceResultPretty)
-								pushToolResult(formatResponse.toolResult(resourceResultPretty))
+								// Extract text and images from the MCP resource response
+								let resourceResultText = ""
+								const imageUrls: string[] = []
+
+								if (resourceResult?.contents) {
+									resourceResultText =
+										resourceResult.contents
+											.map((item) => {
+												if (item.text) {
+													return item.text
+												}
+
+												// Handle image content
+												if (
+													item.mimeType &&
+													typeof item.mimeType === "string" &&
+													item.mimeType.startsWith("image/")
+												) {
+													// Handle blob data if present
+													if (item.blob && typeof item.blob === "string") {
+														const dataUrl = `data:${item.mimeType};base64,${item.blob}`
+														imageUrls.push(dataUrl)
+													}
+													return "" // Don't include image URLs in text
+												}
+
+												return ""
+											})
+											.filter(Boolean)
+											.join("\n\n") || "(Empty response)"
+								}
+
+								await this.say(
+									"mcp_server_response",
+									resourceResultText,
+									imageUrls.length > 0 ? imageUrls : undefined,
+								)
+								pushToolResult(
+									formatResponse.toolResult(
+										resourceResultText,
+										imageUrls.length > 0 ? imageUrls : undefined,
+									),
+								)
 								break
 							}
 						} catch (error) {
